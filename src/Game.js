@@ -190,12 +190,6 @@ export default class Game extends React.Component {
           </Text>
         </View>
 
-        <View style={{position: 'absolute', top: 10, right: 10, backgroundColor: 'transparent'}}>
-          <Text onPress={this._addAnotherBall} style={{color: '#fff'}}>
-            Add another ball plis
-          </Text>
-        </View>
-
         <StatusBar hidden={true} />
       </View>
     );
