@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   PanResponder,
@@ -28,7 +29,7 @@ function newBall(x = SceneWidth / 2, y = SceneHeight / 2, vx = 0.1, vy = 5) {
 
 function newGameState() {
   return {
-    countdown: 3,
+    countdown: 4,
     paddleX: new Animated.Value(0.5),
     balls: [newBall()],
     gameOver: false,
@@ -58,11 +59,11 @@ export default class Game extends React.Component {
       return;
     }
 
-    if (timeElapsed < 3) {
+    if (timeElapsed < 4) {
       timeElapsed += dt;
 
       if (3 - Math.floor(timeElapsed) !== this.state.countdown) {
-        this.setState({countdown: 3 - Math.floor(timeElapsed)});
+        this.setState({countdown: 4 - Math.floor(timeElapsed)});
       }
       return;
     }
@@ -163,7 +164,12 @@ export default class Game extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1}}>
+      <View style={{flex: 1, backgroundColor: '#000'}}>
+
+        <View style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center'}]}>
+          <ActivityIndicator />
+        </View>
+
         <GameRenderer
           balls={this.state.balls}
           paddleX={this.state.paddleX}
@@ -180,7 +186,7 @@ export default class Game extends React.Component {
 
         <View style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent'}]} pointerEvents="none">
           <Text style={{color: '#fff', fontSize: 120, fontWeight: 'bold'}}>
-            {this.state.countdown > 0 ? this.state.countdown : ''}
+            {this.state.countdown > 0 && this.state.countdown < 4 ? this.state.countdown : ''}
           </Text>
         </View>
 
