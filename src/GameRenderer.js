@@ -1,11 +1,10 @@
 import Exponent from 'exponent';
 import React from 'react';
-import { Alert, Dimensions, PanResponder } from 'react-native';
+import { Platform } from 'react-native';
 
 const THREE = require('three');
 const THREEView = Exponent.createTHREEViewClass(THREE);
 
-import Assets from '../assets';
 import GameDimensions from './GameDimensions';
 import GameState from './GameState';
 
@@ -125,8 +124,10 @@ export default class GameRenderer extends React.Component {
       ForegroundZ,
     );
 
-    let rotation = (GameState.getPaddleXValue() - 0.5) * 0.1;
-    this._scene.rotation.y = -rotation;
+    if (Platform.OS === 'ios') {
+      let rotation = (GameState.getPaddleXValue() - 0.5) * 0.1;
+      this._scene.rotation.y = -rotation;
+    }
   }
 
   _addBrick = (brick) => {
@@ -233,13 +234,3 @@ export default class GameRenderer extends React.Component {
     );
   }
 };
-
-function lowPass(input, output) {
-  const ALPHA = 0.1;
-
-  if (!output) {
-    return { ...input };
-  }
-  output.x = output.x + ALPHA * (input.x - output.x);
-  return output;
-}

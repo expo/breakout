@@ -2,7 +2,6 @@ import Exponent from 'exponent';
 import React from 'react';
 import { Alert, PanResponder } from 'react-native';
 
-import Assets from './assets';
 import Game from './src/Game';
 
 class App extends React.Component {
@@ -17,9 +16,9 @@ class App extends React.Component {
 
   async loadAssetsAsync() {
     try {
-      await Promise.all(Object.keys(Assets).map((name) => {
-        return Assets[name].downloadAsync()
-      }));
+      await Exponent.Font.loadAsync({
+        'SpaceMono': require('./assets/fonts/SpaceMono-Regular.ttf'),
+      });
 
       this.setState({ loaded: true });
     } catch (e) {

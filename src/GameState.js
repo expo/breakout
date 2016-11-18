@@ -2,6 +2,7 @@ import { Animated } from 'react-native';
 import GameDimensions from './GameDimensions';
 const { SceneWidth, SceneHeight } = GameDimensions;
 
+const ScorePerBrick = 100;
 let entityId = 0;
 
 function newBricksForLevel(level) {
@@ -64,8 +65,9 @@ function newGameState() {
     paddleX: new Animated.Value(0.5),
     balls: [newBall()],
     gameOver: false,
-    level: 0,
+    level: 1,
     bricks: newBricksForLevel(0),
+    score: 0,
   };
 }
 
@@ -140,6 +142,7 @@ class GameState {
     let paddleTop = paddleY - GameDimensions.Paddle.Height / 2;
     let paddleMiddle = paddleX;
 
+    let updatedScore = this.state.score;
     let updatedBricks = this.state.bricks;
     let updatedBalls = this.state.balls.map(ball => {
       let { ballY, ballX, ballVy, ballVx } = ball;
@@ -180,10 +183,17 @@ class GameState {
       }
 
       const brickCollidesWithBall = brickCollides.bind(this, ballTop, ballRight, ballBottom, ballLeft);
+      let hasHitBrick = false;
       updatedBricks = updatedBricks.map(brick => {
+        if (hasHitBrick) {
+          return brick;
+        }
+
         if (brickCollidesWithBall(brick.brickTop, brick.brickRight, brick.brickBottom, brick.brickLeft)) {
+          hasHitBrick = true;
           ball.ballVy = -ballVy;
           ball.ballVx = -ballVx;
+          updatedScore += ScorePerBrick;
           return null;
         }
 
@@ -193,12 +203,21 @@ class GameState {
       return ball;
     }).filter(ball => ball !== null);
 
+    this.state.score = updatedScore;
     this.state.bricks = updatedBricks;
     this.state.balls = updatedBalls;
   }
 
   getPaddleXValue() {
     return this.state.paddleX.__getValue();
+  }
+
+  getScore() {
+    return this.state.score;
+  }
+
+  getLevel() {
+    return this.state.level;
   }
 }
 

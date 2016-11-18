@@ -12,6 +12,7 @@ import {
 
 import GameRenderer from './GameRenderer';
 import GameState from './GameState';
+import ScoreBoard from './ScoreBoard';
 
 export default class Game extends React.Component {
   state = {
@@ -46,6 +47,8 @@ export default class Game extends React.Component {
         this.setState({countdown});
       }
     }
+
+    this._scoreBoard && this._scoreBoard.onTick(dt);
   }
 
   _startNewGame = () => {
@@ -67,7 +70,7 @@ export default class Game extends React.Component {
     return (
       <View style={styles.container}>
         { this.state.countdown === null && <View style={styles.loadingContainer}>
-          <ActivityIndicator />
+          <ActivityIndicator color="#fff" size="large" />
         </View> }
 
         <GameRenderer
@@ -78,7 +81,7 @@ export default class Game extends React.Component {
 
         { this.state.gameOver && <View style={styles.gameOverContainer}>
             <Text style={styles.gameOverText} onPress={this._startNewGame}>
-              Game over! Tap to play again.
+              Game over! Play again?
             </Text>
           </View> }
 
@@ -88,6 +91,7 @@ export default class Game extends React.Component {
           </Text>
         </View>
 
+        <ScoreBoard ref={view => { this._scoreBoard = view; }} />
         <StatusBar hidden={true} />
       </View>
     );
@@ -108,13 +112,14 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   gameOverText: {
     color: '#fff',
-    fontSize: 80,
-    lineHeight: 85,
-    fontWeight: 'bold',
+    fontSize: 45,
+    letterSpacing: -1,
+    fontFamily: 'SpaceMono',
+    lineHeight: 65,
   },
   countdownContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -123,8 +128,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   countdownText: {
+    fontFamily: 'SpaceMono',
     color: '#fff',
     fontSize: 120,
-    fontWeight: 'bold',
   },
 });
