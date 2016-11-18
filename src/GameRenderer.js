@@ -1,4 +1,4 @@
-import Exponent, { Accelerometer, Gyroscope } from 'exponent';
+import Exponent from 'exponent';
 import React from 'react';
 import { Alert, Dimensions, PanResponder } from 'react-native';
 
@@ -8,36 +8,16 @@ const THREEView = Exponent.createTHREEViewClass(THREE);
 import Assets from '../assets';
 import GameDimensions from './GameDimensions';
 
+const ForegroundZ = 5;
+
 export default class GameRenderer extends React.Component {
-  _rotateX = 0;
+  _balls = {};
 
   componentWillMount() {
     this._initializeScene();
-    this._addGyroscopeListener();
     this._addLighting();
     this._addPaddle();
-    this._addBall();
     this._addGrid();
-  }
-
-  shouldComponentUpdate() {
-    return false;
-  }
-
-  _addGyroscopeListener() {
-    // let lastSample = new Date();
-
-    // Accelerometer.setUpdateInterval(16.6);
-    // Accelerometer.addListener(e => {
-    //   let dt = 0.16;
-
-    //   this._currentAccelerometerVal = lowPass(e, this._currentAccelerometerVal);
-
-    //   const alpha = dt / (.3 + dt);
-    //   const smoothedVx = (alpha * this._currentAccelerometerVal.x * 5000) + (1.0 - alpha);
-
-    //   this._rotateX = smoothedVx * dt;
-    // });
   }
 
   componentWillUnmount() {
@@ -118,7 +98,7 @@ export default class GameRenderer extends React.Component {
     this._scene.add(mesh);
   }
 
-  _addBall = () => {
+  _addBall = (ball) => {
     const { SceneWidth, SceneHeight } = GameDimensions;
     const { Radius } = GameDimensions.Ball;
     const geometry = new THREE.SphereGeometry(Radius, 5, 5);
@@ -128,11 +108,10 @@ export default class GameRenderer extends React.Component {
       side: THREE.DoubleSide,
       shading: THREE.FlatShading
     })
-    const sphere = new THREE.Mesh( geometry, material );
-
-    sphere.position.set(SceneWidth / 2, SceneHeight / 2 , 5);
-    this._ball = sphere;
-    this._scene.add(sphere);
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(ball.ballX, ball.ballY, ForegroundZ);
+    this._scene.add(mesh);
+    return mesh;
   }
 
   _updatePaddlePosition() {
@@ -142,37 +121,55 @@ export default class GameRenderer extends React.Component {
     this._paddle.position.set(
       SceneWidth * this.props.paddleX.__getValue(),
       SceneHeight - BottomOffset,
-      5,
+      ForegroundZ,
     );
 
     let rotation = (this.props.paddleX.__getValue() - 0.5) * 0.1;
-
-    // this._camera.position.x = rotation;
-    // this._camera.position.y = -rotation;
-    // this._scene.rotation.z = rotation;
-    // this._scene.rotation.x = -rotation;
     this._scene.rotation.y = -rotation;
   }
 
-  _updateBallPosition() {
-    const { ballX, ballY } = this.props;
+  _updateBallPositions(dt) {
+    const { balls } = this.props.balls;
 
-    this._ball.position.set(
-      ballX,
-      ballY,
-      5,
-    );
+    if (this.props.balls.length < Object.keys(this._balls).length) {
+      let ids = this.props.balls.map(ball => ball.id);
+
+      Object.keys(this._balls).forEach((key) => {
+        if (ids.indexOf(key) === -1) {
+          this._scene.remove(this._balls[key]);
+          delete this._balls[key];
+        }
+      });
+    }
+
+    this.props.balls.forEach(ball => {
+      let { id, ballX, ballY } = ball;
+      let ballMesh = this._balls[id];
+
+      if (!ballMesh) {
+        ballMesh = this._addBall(ball);
+        this._balls[id] = ballMesh;
+      }
+
+      ballMesh.position.set(
+        ballX,
+        ballY,
+        ForegroundZ,
+      );
+    });
   }
 
-  _spinBall = (dt) => {
-    this._ball.rotation.x += dt * 2;
+  _spinBalls = (dt) => {
+    Object.values(this._balls).forEach(ball => {
+      ball.rotation.x += dt * 2;
+    });
   }
 
   _tick = (dt) => {
     // Do our own stuff if we want to
     this._updatePaddlePosition(dt);
-    this._updateBallPosition(dt);
-    this._spinBall(dt);
+    this._updateBallPositions(dt);
+    this._spinBalls(dt);
 
     // Then call on props
     this.props.onTick(dt);
