@@ -39,6 +39,10 @@ function newBrick(x, y) {
     id: entityId,
     brickX: x,
     brickY: y,
+    brickLeft: x - (GameDimensions.Brick.Width / 2),
+    brickRight: x + (GameDimensions.Brick.Width / 2),
+    brickTop: y - (GameDimensions.Brick.Height / 2),
+    brickBottom: y + (GameDimensions.Brick.Height / 2),
   };
 }
 
@@ -136,7 +140,8 @@ class GameState {
     let paddleTop = paddleY - GameDimensions.Paddle.Height / 2;
     let paddleMiddle = paddleX;
 
-    updatedBalls = this.state.balls.map(ball => {
+    let updatedBricks = this.state.bricks;
+    let updatedBalls = this.state.balls.map(ball => {
       let { ballY, ballX, ballVy, ballVx } = ball;
       let ballBottom = ballY + Radius;
       let ballTop = ballY - Radius;
@@ -148,9 +153,17 @@ class GameState {
         return null;
       }
 
-      // Paddle
-      if (ballTop <= paddleTop && ballBottom >= paddleTop && ballRight >= paddleLeft && ballLeft <= paddleRight) {
-        ballVy = -ballVy;
+      if (ballTop <= 0 && ballVy < 0) {
+        ball.ballVy = -ballVy;
+        return ball;
+      } else if ((ballLeft <= 0 && ballVx < 0) || (ballRight >= SceneWidth && ballVx > 0)) {
+        ball.ballVx = -ballVx;
+        return ball;
+      }
+
+      const paddleCollidesWithBall = paddleCollides.bind(this, ballTop, ballRight, ballBottom, ballLeft);
+      if (paddleCollidesWithBall(paddleTop, paddleRight, paddleBottom, paddleLeft)) {
+        ball.ballVy = -ballVy;
 
         let placementFactor;
         if (ballMiddle < paddleMiddle) {
@@ -161,19 +174,27 @@ class GameState {
           placementFactor = 0;
         }
 
-        ballVx = placementFactor * 5;
-      } else {
-        if (ballTop <= 0 && ballVy < 0) {
-          ballVy = -ballVy;
-        } else if ((ballLeft <= 0 && ballVx < 0) || (ballRight >= SceneWidth && ballVx > 0)) {
-          ballVx = -ballVx;
-        }
+        ball.ballVx = placementFactor * 5;
+
+        return ball;
       }
 
-      return { ...ball, ballVy, ballVx };
-    });
+      const brickCollidesWithBall = brickCollides.bind(this, ballTop, ballRight, ballBottom, ballLeft);
+      updatedBricks = updatedBricks.map(brick => {
+        if (brickCollidesWithBall(brick.brickTop, brick.brickRight, brick.brickBottom, brick.brickLeft)) {
+          ball.ballVy = -ballVy;
+          ball.ballVx = -ballVx;
+          return null;
+        }
 
-    this.state.balls = updatedBalls.filter(ball => ball !== null);
+        return brick;
+      }).filter(brick => brick !== null);
+
+      return ball;
+    }).filter(ball => ball !== null);
+
+    this.state.bricks = updatedBricks;
+    this.state.balls = updatedBalls;
   }
 
   getPaddleXValue() {
@@ -181,4 +202,26 @@ class GameState {
   }
 }
 
+function paddleCollides(ballTop, ballRight, ballBottom, ballLeft, paddleTop, paddleRight, paddleBottom, paddleLeft) {
+  return (ballTop <= paddleTop &&
+          ballBottom >= paddleTop &&
+          ballRight >= paddleLeft &&
+          ballLeft <= paddleRight);
+}
+
+function brickCollides(ballTop, ballRight, ballBottom, ballLeft, brickTop, brickRight, brickBottom, brickLeft) {
+  if (ballTop   <= brickBottom &&
+      ballTop   >= brickTop &&
+      ballRight >= brickLeft &&
+      ballLeft  <= brickRight) {
+    return true;
+  } else if (ballBottom >= brickTop &&
+             ballBottom <= brickBottom &&
+             ballRight >= brickLeft &&
+             ballLeft  <= brickRight) {
+    return true;
+  } else {
+    return false;
+  }
+}
 export default new GameState;
