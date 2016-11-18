@@ -8,6 +8,7 @@ const GameDimensions = {
   SceneWidth,
   SceneHeight,
   Paddle: { Width: 1, Height: 0.2, BottomOffset: 0.5, Y: SceneHeight - 0.5 },
+  Brick: { Width: 0.4, Height: 0.2 },
   Ball: { Radius: 0.15 },
   ForegroundZ: 5,
 }

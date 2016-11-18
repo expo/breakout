@@ -13,6 +13,7 @@ const { ForegroundZ } = GameDimensions;
 
 export default class GameRenderer extends React.Component {
   _ballMeshes = {};
+  _brickMeshes = {};
 
   componentWillMount() {
     this._initializeScene();
@@ -100,7 +101,6 @@ export default class GameRenderer extends React.Component {
   }
 
   _addBall = (ball) => {
-    const { SceneWidth, SceneHeight } = GameDimensions;
     const { Radius } = GameDimensions.Ball;
     const geometry = new THREE.SphereGeometry(Radius, 5, 5);
     const material = new THREE.MeshPhongMaterial({
@@ -127,6 +127,51 @@ export default class GameRenderer extends React.Component {
 
     let rotation = (GameState.getPaddleXValue() - 0.5) * 0.1;
     this._scene.rotation.y = -rotation;
+  }
+
+  _addBrick = (brick) => {
+    const { Width, Height } = GameDimensions.Brick;
+    const geometry = new THREE.BoxGeometry(Width, Height, 1);
+    const mesh = new THREE.Object3D();
+
+    mesh.add(new THREE.Mesh(
+      geometry,
+      new THREE.MeshPhongMaterial({
+        color: 0x156289,
+        emissive: 0x072534,
+        side: THREE.DoubleSide,
+        shading: THREE.FlatShading
+      })
+    ));
+
+    this._scene.add(mesh);
+    mesh.position.set(brick.brickX, brick.brickY, ForegroundZ);
+
+    return mesh;
+  }
+
+  _updateBricks(dt) {
+    const { bricks } = GameState.state;
+
+    if (bricks.length < Object.keys(this._brickMeshes).length) {
+      let ids = bricks.map(brick => brick.id);
+
+      Object.keys(this._brickMeshes).forEach((key) => {
+        if (ids.indexOf(key) === -1) {
+          this._scene.remove(this._brickMeshes[key]);
+          delete this._brickMeshes[key];
+        }
+      });
+    }
+
+    bricks.forEach(brick => {
+      let brickMesh = this._brickMeshes[brick.id];
+
+      if (!brickMesh) {
+        brickMesh = this._addBrick(brick);
+        this._brickMeshes[brick.id] = brickMesh;
+      }
+    });
   }
 
   _updateBallPositions(dt) {
@@ -169,6 +214,7 @@ export default class GameRenderer extends React.Component {
   _tick = (dt) => {
     GameState.tick(dt);
 
+    this._updateBricks(dt);
     this._updatePaddlePosition(dt);
     this._updateBallPositions(dt);
     this._spinBalls(dt);

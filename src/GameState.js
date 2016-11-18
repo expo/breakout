@@ -3,6 +3,45 @@ import GameDimensions from './GameDimensions';
 const { SceneWidth, SceneHeight } = GameDimensions;
 
 let entityId = 0;
+
+function newBricksForLevel(level) {
+  return [
+    newBrick(0.7, 1),
+    newBrick(1.2, 1),
+    newBrick(1.7, 1),
+    newBrick(2.2, 1),
+    newBrick(2.7, 1),
+    newBrick(3.2, 1),
+
+    newBrick(1.2, 1.3),
+    newBrick(1.7, 1.3),
+    newBrick(2.2, 1.3),
+    newBrick(2.7, 1.3),
+
+    newBrick(1.2, 1.6),
+    newBrick(1.7, 1.6),
+    newBrick(2.2, 1.6),
+    newBrick(2.7, 1.6),
+
+    newBrick(0.7, 1.9),
+    newBrick(1.2, 1.9),
+    newBrick(1.7, 1.9),
+    newBrick(2.2, 1.9),
+    newBrick(2.7, 1.9),
+    newBrick(3.2, 1.9),
+  ];
+}
+
+function newBrick(x, y) {
+  entityId++;
+
+  return {
+    id: entityId,
+    brickX: x,
+    brickY: y,
+  };
+}
+
 function newBall(x = SceneWidth / 2, y = SceneHeight / 2, vx = 0.1, vy = 5) {
   entityId++;
 
@@ -21,6 +60,8 @@ function newGameState() {
     paddleX: new Animated.Value(0.5),
     balls: [newBall()],
     gameOver: false,
+    level: 0,
+    bricks: newBricksForLevel(0),
   };
 }
 
