@@ -138,8 +138,8 @@ export default class GameRenderer extends React.Component {
     mesh.add(new THREE.Mesh(
       geometry,
       new THREE.MeshPhongMaterial({
-        color: 0x156289,
-        emissive: 0x072534,
+        color: brick.color,
+        emissive: brick.color,
         side: THREE.DoubleSide,
         shading: THREE.FlatShading
       })

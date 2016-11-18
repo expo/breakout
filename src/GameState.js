@@ -5,32 +5,39 @@ const { SceneWidth, SceneHeight } = GameDimensions;
 const ScorePerBrick = 100;
 let entityId = 0;
 
-function newBricksForLevel(level) {
-  return [
-    newBrick(0.7, 1),
-    newBrick(1.2, 1),
-    newBrick(1.7, 1),
-    newBrick(2.2, 1),
-    newBrick(2.7, 1),
-    newBrick(3.2, 1),
+function random(min, max) {
+  return Math.floor(Math.random() * max) + min;
+}
 
-    newBrick(1.2, 1.3),
-    newBrick(1.7, 1.3),
-    newBrick(2.2, 1.3),
-    newBrick(2.7, 1.3),
+const RowStyles = [
+  [ 0.7, 1.2, 1.7, 2.2, 2.7, 3.2, ],
+  [ 1.2, 1.7, 2.2, 2.7, ],
+  [ 0.7, 1.7, 2.2, 3.2, ],
+  [ 0.95, 2.95, ],
+  [ 0.7, 1.2, 2.7, 3.2, ],
+  [ 1.95, ],
+];
 
-    newBrick(1.2, 1.6),
-    newBrick(1.7, 1.6),
-    newBrick(2.2, 1.6),
-    newBrick(2.7, 1.6),
+function createBrickRow(style, rowNumber) {
+  let y = 0.85 + (rowNumber - 1) * 0.3;
+  return style.map(x => newBrick(x, y));
+}
 
-    newBrick(0.7, 1.9),
-    newBrick(1.2, 1.9),
-    newBrick(1.7, 1.9),
-    newBrick(2.2, 1.9),
-    newBrick(2.7, 1.9),
-    newBrick(3.2, 1.9),
-  ];
+function newBrickLayout() {
+  let numRows = random(5, 6);
+  let layout = [];
+
+  for (var i = 0; i < numRows; i++) {
+    let idx = random(0, RowStyles.length);
+    let row = createBrickRow(RowStyles[idx], i + 1);
+    layout = [...layout, ...row];
+  }
+
+  return layout;
+}
+
+function randomColor() {
+  return eval(`0x${Math.floor(Math.random()*16777215).toString(16)}`);
 }
 
 function newBrick(x, y) {
@@ -38,6 +45,7 @@ function newBrick(x, y) {
 
   return {
     id: entityId,
+    color: randomColor(),
     brickX: x,
     brickY: y,
     brickLeft: x - (GameDimensions.Brick.Width / 2),
@@ -66,7 +74,7 @@ function newGameState() {
     balls: [newBall()],
     gameOver: false,
     level: 1,
-    bricks: newBricksForLevel(0),
+    bricks: newBrickLayout(),
     score: 0,
   };
 }
@@ -93,6 +101,14 @@ class GameState {
       return;
     }
 
+    // Skip to the next level
+    // if (!this._lol) {
+    //   this._lol = setTimeout(() => {
+    //     this._proceedToNextLevel();
+    //     this._lol = null;
+    //   }, 8000);
+    // }
+
     this.state.timeElapsed += dt;
 
     if (this.state.timeElapsed < this.CountdownMax) {
@@ -102,9 +118,20 @@ class GameState {
     this._checkForCollisions(dt);
     this._updateBallPositions(dt);
 
+    if (this.state.bricks.length === 0) {
+      this._proceedToNextLevel();
+    }
+
     if (this.state.balls.length === 0) {
       this.state.gameOver = true;
     }
+  }
+
+  _proceedToNextLevel() {
+    this.state.level += 1;
+    this.state.balls = [newBall()];
+    this.state.timeElapsed = 0;
+    this.state.bricks = newBrickLayout();
   }
 
   movePaddleTo(toValue, vx) {

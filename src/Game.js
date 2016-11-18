@@ -40,7 +40,7 @@ export default class Game extends React.Component {
 
     let { timeElapsed } = GameState.state;
 
-    if (this.state.countdown !== 0) {
+    if (timeElapsed < 3 || this.state.countdown !== 0) {
       let countdown = Math.max(0, Math.ceil(GameState.CountdownMax - timeElapsed));
 
       if (countdown !== this.state.countdown) {
@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
     fontFamily: 'SpaceMono',
     lineHeight: 65,
+    textAlign: 'center',
   },
   countdownContainer: {
     ...StyleSheet.absoluteFillObject,
