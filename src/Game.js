@@ -38,7 +38,6 @@ function newGameState() {
 let timeElapsed = 0;
 
 export default class Game extends React.Component {
-
   constructor(props) {
     super(props);
 
@@ -84,8 +83,12 @@ export default class Game extends React.Component {
   _updateBallPositions = (dt) => {
     let balls = this.state.balls.map(ball => {
       let { ballX, ballY, ballVy, ballVx } = ball;
-      ball.ballY = ballY + ballVy * dt;
-      ball.ballX = ballX + ballVx * dt;
+
+      /* When particularly laggy this can cause problems if we
+       * don't just assume dt is 0.016 -- it can jump into the middle
+       * of an object for example. */
+      ball.ballY = ballY + ballVy * 0.016;
+      ball.ballX = ballX + ballVx * 0.016;
       return ball;
     });
 
@@ -102,6 +105,7 @@ export default class Game extends React.Component {
     let paddleLeft = paddleX - GameDimensions.Paddle.Width / 2;
     let paddleBottom = paddleY + GameDimensions.Paddle.Height / 2;
     let paddleTop = paddleY - GameDimensions.Paddle.Height / 2;
+    let paddleMiddle = paddleX;
 
     updatedBalls = balls.map(ball => {
       let { ballY, ballX, ballVy, ballVx } = ball;
@@ -109,23 +113,32 @@ export default class Game extends React.Component {
       let ballTop = ballY - Radius;
       let ballLeft = ballX - Radius;
       let ballRight = ballX + Radius;
+      let ballMiddle = ballX;
 
-      // Paddle
-      if (ballBottom >= paddleTop && ballBottom < paddleBottom &&
-          ((ballRight >= paddleLeft && ballRight <= paddleRight))) {
-        ballVy = -ballVy;
-        ballVx = -ballVx;
-      }
-
-      if (ballTop >= SceneHeight) {
+      if (ballBottom >= SceneHeight) {
         return null;
       }
 
-      if (ballTop <= 0 ||
-          ballLeft <= 0 ||
-          ballRight >= SceneWidth) {
+      // Paddle
+      if (ballTop <= paddleTop && ballBottom >= paddleTop && ballRight >= paddleLeft && ballLeft <= paddleRight) {
         ballVy = -ballVy;
-        ballVx = -ballVx;
+
+        let placementFactor;
+        if (ballMiddle < paddleMiddle) {
+          placementFactor = -((paddleMiddle - ballMiddle) / (GameDimensions.Paddle.Width / 2));
+        } else if (ballMiddle > paddleMiddle) {
+          placementFactor = ((ballMiddle - paddleMiddle) / (GameDimensions.Paddle.Width / 2));
+        } else {
+          placementFactor = 0;
+        }
+
+        ballVx = placementFactor * 5;
+      } else {
+        if (ballTop <= 0 && ballVy < 0) {
+          ballVy = -ballVy;
+        } else if ((ballLeft <= 0 && ballVx < 0) || (ballRight >= SceneWidth && ballVx > 0)) {
+          ballVx = -ballVx;
+        }
       }
 
       return { ...ball, ballVy, ballVx };

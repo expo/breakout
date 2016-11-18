@@ -20,6 +20,10 @@ export default class GameRenderer extends React.Component {
     this._addGrid();
   }
 
+  shouldComponentUpdate() {
+    return false;
+  }
+
   componentWillUnmount() {
     Accelerometer.removeAllListeners();
   }
