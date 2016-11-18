@@ -11,34 +11,13 @@ import {
 } from 'react-native';
 
 import GameRenderer from './GameRenderer';
-import GameDimensions from './GameDimensions';
-const { SceneWidth, SceneHeight } = GameDimensions;
-
-let entityId = 0;
-function newBall(x = SceneWidth / 2, y = SceneHeight / 2, vx = 0.1, vy = 5) {
-  entityId++;
-
-  return {
-    id: entityId,
-    ballVy: vy,
-    ballVx: vx,
-    ballX: x,
-    ballY: y,
-  }
-}
-
-function newGameState() {
-  return {
-    countdown: 4,
-    paddleX: new Animated.Value(0.5),
-    balls: [newBall()],
-    gameOver: false,
-  };
-}
-
-let timeElapsed = 0;
+import GameState from './GameState';
 
 export default class Game extends React.Component {
+  state = {
+    gameOver: false,
+  }
+
   constructor(props) {
     super(props);
 
@@ -52,114 +31,32 @@ export default class Game extends React.Component {
     });
   }
 
-  state = newGameState();
-
   _onTick = (dt) => {
-    if (dt > 1 && this.state.countdown > 0) {
-      return;
-    }
-
-    if (timeElapsed < 4) {
-      timeElapsed += dt;
-
-      if (3 - Math.floor(timeElapsed) !== this.state.countdown) {
-        this.setState({countdown: 4 - Math.floor(timeElapsed)});
-      }
-      return;
-    }
-
-    let balls = this._checkForCollisions(this._updateBallPositions(dt));
-    if (balls.length === 0) {
+    if (GameState.isGameOver()) {
       this.setState({gameOver: true});
-    } else {
-      this.setState({balls});
+    }
+
+    let { timeElapsed } = GameState.state;
+
+    if (this.state.countdown !== 0) {
+      let countdown = Math.max(0, Math.ceil(GameState.CountdownMax - timeElapsed));
+
+      if (countdown !== this.state.countdown) {
+        this.setState({countdown});
+      }
     }
   }
 
   _startNewGame = () => {
-    timeElapsed = 0;
-    this.setState(newGameState());
-  }
-
-  _updateBallPositions = (dt) => {
-    let balls = this.state.balls.map(ball => {
-      let { ballX, ballY, ballVy, ballVx } = ball;
-
-      /* When particularly laggy this can cause problems if we
-       * don't just assume dt is 0.016 -- it can jump into the middle
-       * of an object for example. */
-      ball.ballY = ballY + ballVy * 0.016;
-      ball.ballX = ballX + ballVx * 0.016;
-      return ball;
-    });
-
-    return balls;
-  }
-
-  _checkForCollisions = (balls) => {
-    const { Radius } = GameDimensions.Ball;
-
-    let paddleX = this.state.paddleX.__getValue() * SceneWidth;
-    let paddleY = GameDimensions.Paddle.Y;
-
-    let paddleRight = paddleX + GameDimensions.Paddle.Width / 2;
-    let paddleLeft = paddleX - GameDimensions.Paddle.Width / 2;
-    let paddleBottom = paddleY + GameDimensions.Paddle.Height / 2;
-    let paddleTop = paddleY - GameDimensions.Paddle.Height / 2;
-    let paddleMiddle = paddleX;
-
-    updatedBalls = balls.map(ball => {
-      let { ballY, ballX, ballVy, ballVx } = ball;
-      let ballBottom = ballY + Radius;
-      let ballTop = ballY - Radius;
-      let ballLeft = ballX - Radius;
-      let ballRight = ballX + Radius;
-      let ballMiddle = ballX;
-
-      if (ballBottom >= SceneHeight) {
-        return null;
-      }
-
-      // Paddle
-      if (ballTop <= paddleTop && ballBottom >= paddleTop && ballRight >= paddleLeft && ballLeft <= paddleRight) {
-        ballVy = -ballVy;
-
-        let placementFactor;
-        if (ballMiddle < paddleMiddle) {
-          placementFactor = -((paddleMiddle - ballMiddle) / (GameDimensions.Paddle.Width / 2));
-        } else if (ballMiddle > paddleMiddle) {
-          placementFactor = ((ballMiddle - paddleMiddle) / (GameDimensions.Paddle.Width / 2));
-        } else {
-          placementFactor = 0;
-        }
-
-        ballVx = placementFactor * 5;
-      } else {
-        if (ballTop <= 0 && ballVy < 0) {
-          ballVy = -ballVy;
-        } else if ((ballLeft <= 0 && ballVx < 0) || (ballRight >= SceneWidth && ballVx > 0)) {
-          ballVx = -ballVx;
-        }
-      }
-
-      return { ...ball, ballVy, ballVx };
-    });
-
-    return updatedBalls.filter(ball => ball !== null);
+    GameState.restart();
+    this.setState({gameOver: false, countdown: 3});
   }
 
   _handleMove = (_, gesture) => {
-    Animated.spring(this.state.paddleX, {
-      toValue: gesture.moveX / Dimensions.get('window').width,
-      vx: gesture.vx,
-      speed: 80,
-      bounciness: 0,
-    }).start();
-  }
-
-  _addAnotherBall = () => {
-    let balls = [...this.state.balls, newBall()];
-    this.setState({balls});
+    GameState.movePaddleTo(
+      gesture.moveX / Dimensions.get('window').width,
+      gesture.vx,
+    );
   }
 
   render() {
@@ -171,8 +68,6 @@ export default class Game extends React.Component {
         </View>
 
         <GameRenderer
-          balls={this.state.balls}
-          paddleX={this.state.paddleX}
           panResponder={this._panResponder}
           onTick={this._onTick}
           style={{flex: 1}}
@@ -186,7 +81,7 @@ export default class Game extends React.Component {
 
         <View style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent'}]} pointerEvents="none">
           <Text style={{color: '#fff', fontSize: 120, fontWeight: 'bold'}}>
-            {this.state.countdown > 0 && this.state.countdown < 4 ? this.state.countdown : ''}
+            {this.state.countdown > 0 ? this.state.countdown : ''}
           </Text>
         </View>
 

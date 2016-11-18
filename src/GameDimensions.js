@@ -9,6 +9,7 @@ const GameDimensions = {
   SceneHeight,
   Paddle: { Width: 1, Height: 0.2, BottomOffset: 0.5, Y: SceneHeight - 0.5 },
   Ball: { Radius: 0.15 },
+  ForegroundZ: 5,
 }
 
 export default GameDimensions;

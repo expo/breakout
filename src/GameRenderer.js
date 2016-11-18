@@ -7,11 +7,12 @@ const THREEView = Exponent.createTHREEViewClass(THREE);
 
 import Assets from '../assets';
 import GameDimensions from './GameDimensions';
+import GameState from './GameState';
 
-const ForegroundZ = 5;
+const { ForegroundZ } = GameDimensions;
 
 export default class GameRenderer extends React.Component {
-  _balls = {};
+  _ballMeshes = {};
 
   componentWillMount() {
     this._initializeScene();
@@ -22,10 +23,6 @@ export default class GameRenderer extends React.Component {
 
   shouldComponentUpdate() {
     return false;
-  }
-
-  componentWillUnmount() {
-    Accelerometer.removeAllListeners();
   }
 
   _initializeScene = () => {
@@ -123,36 +120,36 @@ export default class GameRenderer extends React.Component {
     const { BottomOffset } = GameDimensions.Paddle;
 
     this._paddle.position.set(
-      SceneWidth * this.props.paddleX.__getValue(),
+      SceneWidth * GameState.getPaddleXValue(),
       SceneHeight - BottomOffset,
       ForegroundZ,
     );
 
-    let rotation = (this.props.paddleX.__getValue() - 0.5) * 0.1;
+    let rotation = (GameState.getPaddleXValue() - 0.5) * 0.1;
     this._scene.rotation.y = -rotation;
   }
 
   _updateBallPositions(dt) {
-    const { balls } = this.props.balls;
+    const { balls } = GameState.state;
 
-    if (this.props.balls.length < Object.keys(this._balls).length) {
-      let ids = this.props.balls.map(ball => ball.id);
+    if (balls.length < Object.keys(this._ballMeshes).length) {
+      let ids = balls.map(ball => ball.id);
 
-      Object.keys(this._balls).forEach((key) => {
+      Object.keys(this._ballMeshes).forEach((key) => {
         if (ids.indexOf(key) === -1) {
-          this._scene.remove(this._balls[key]);
-          delete this._balls[key];
+          this._scene.remove(this._ballMeshes[key]);
+          delete this._ballMeshes[key];
         }
       });
     }
 
-    this.props.balls.forEach(ball => {
+    balls.forEach(ball => {
       let { id, ballX, ballY } = ball;
-      let ballMesh = this._balls[id];
+      let ballMesh = this._ballMeshes[id];
 
       if (!ballMesh) {
         ballMesh = this._addBall(ball);
-        this._balls[id] = ballMesh;
+        this._ballMeshes[id] = ballMesh;
       }
 
       ballMesh.position.set(
@@ -164,18 +161,17 @@ export default class GameRenderer extends React.Component {
   }
 
   _spinBalls = (dt) => {
-    Object.values(this._balls).forEach(ball => {
+    Object.values(this._ballMeshes).forEach(ball => {
       ball.rotation.x += dt * 2;
     });
   }
 
   _tick = (dt) => {
-    // Do our own stuff if we want to
+    GameState.tick(dt);
+
     this._updatePaddlePosition(dt);
     this._updateBallPositions(dt);
     this._spinBalls(dt);
-
-    // Then call on props
     this.props.onTick(dt);
   }
 
