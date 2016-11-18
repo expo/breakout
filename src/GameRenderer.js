@@ -140,18 +140,28 @@ export default class GameRenderer extends React.Component {
     const { BottomOffset } = GameDimensions.Paddle;
 
     this._paddle.position.set(
-      SceneWidth * this.props.paddlePosition.__getValue(),
+      SceneWidth * this.props.paddleX.__getValue(),
       SceneHeight - BottomOffset,
       5,
     );
 
-    let rotation = (this.props.paddlePosition.__getValue() - 0.5) * 0.1;
+    let rotation = (this.props.paddleX.__getValue() - 0.5) * 0.1;
 
     // this._camera.position.x = rotation;
     // this._camera.position.y = -rotation;
     // this._scene.rotation.z = rotation;
     // this._scene.rotation.x = -rotation;
     this._scene.rotation.y = -rotation;
+  }
+
+  _updateBallPosition() {
+    const { ballX, ballY } = this.props;
+
+    this._ball.position.set(
+      ballX,
+      ballY,
+      5,
+    );
   }
 
   _spinBall = (dt) => {
@@ -161,6 +171,7 @@ export default class GameRenderer extends React.Component {
   _tick = (dt) => {
     // Do our own stuff if we want to
     this._updatePaddlePosition(dt);
+    this._updateBallPosition(dt);
     this._spinBall(dt);
 
     // Then call on props
