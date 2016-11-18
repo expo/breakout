@@ -5,23 +5,10 @@ import { Alert, Dimensions, PanResponder } from 'react-native';
 const THREE = require('three');
 const THREEView = Exponent.createTHREEViewClass(THREE);
 
-const width = 4;
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
-const height = (screenHeight / screenWidth) * width;
-
 import Assets from '../assets';
+import GameDimensions from './GameDimensions';
 
-function lowPass(input, output) {
-  const ALPHA = 0.1;
-
-  if (!output) {
-    return { ...input };
-  }
-  output.x = output.x + ALPHA * (input.x - output.x);
-  return output;
-}
-
-export default class Renderer extends React.Component {
+export default class GameRenderer extends React.Component {
   _rotateX = 0;
 
   componentWillMount() {
@@ -58,16 +45,16 @@ export default class Renderer extends React.Component {
   }
 
   _initializeScene = () => {
+    const { SceneWidth, SceneHeight } = GameDimensions;
     this._camera = new THREE.OrthographicCamera(
-      0,      // Left
-      width,  // Right
-      0,      // Top
-      height, // Bottom
-      1,      // Near
-      10000,  // Far
+      0,           // Left
+      SceneWidth,  // Right
+      0,           // Top
+      SceneHeight, // Bottom
+      1,           // Near
+      10000,       // Far
     );
 
-    // this._camera.position.x = 1;
     this._camera.position.z = 50;
     this._scene = new THREE.Scene();
   }
@@ -88,7 +75,8 @@ export default class Renderer extends React.Component {
   }
 
   _addGrid = () => {
-    const geometry = new THREE.BoxGeometry(width, height, width, 5, 5, 5);
+    const { SceneWidth, SceneHeight } = GameDimensions;
+    const geometry = new THREE.BoxGeometry(SceneWidth, SceneHeight, SceneWidth, 5, 5, 5);
     const mesh = new THREE.Object3D();
 
     mesh.add(new THREE.LineSegments(
@@ -106,12 +94,13 @@ export default class Renderer extends React.Component {
       })
     ));
 
-    mesh.position.set(width / 2, height / 2, 0);
+    mesh.position.set(SceneWidth / 2, SceneHeight / 2, 0);
     this._scene.add(mesh);
   }
 
   _addPaddle = () => {
-    const geometry = new THREE.BoxGeometry(1, 0.2, 1);
+    const { Width, Height } = GameDimensions.Paddle;
+    const geometry = new THREE.BoxGeometry(Width, Height, 1);
     const mesh = new THREE.Object3D();
 
     mesh.add(new THREE.Mesh(
@@ -130,39 +119,49 @@ export default class Renderer extends React.Component {
   }
 
   _addBall = () => {
-    const geometry = new THREE.SphereGeometry(0.1, 32, 32);
+    const { SceneWidth, SceneHeight } = GameDimensions;
+    const { Radius } = GameDimensions.Ball;
+    const geometry = new THREE.SphereGeometry(Radius, 5, 5);
     const material = new THREE.MeshPhongMaterial({
-      color: 0x156289,
-      emissive: 0x072534,
+      color: 0xff7d00,
+      emissive: 0x905407,
       side: THREE.DoubleSide,
       shading: THREE.FlatShading
     })
     const sphere = new THREE.Mesh( geometry, material );
 
-    sphere.position.set(width / 2, height / 2 , 5);
+    sphere.position.set(SceneWidth / 2, SceneHeight / 2 , 5);
+    this._ball = sphere;
     this._scene.add(sphere);
   }
 
   _updatePaddlePosition() {
+    const { SceneWidth, SceneHeight } = GameDimensions;
+    const { BottomOffset } = GameDimensions.Paddle;
+
     this._paddle.position.set(
-      // width * 0.5,
-      width * this.props.paddlePosition.__getValue(),
-      height - 0.5,
+      SceneWidth * this.props.paddlePosition.__getValue(),
+      SceneHeight - BottomOffset,
       5,
     );
 
-    // let rotation = (this.props.paddlePosition.__getValue() - 0.5) * 0.1;
+    let rotation = (this.props.paddlePosition.__getValue() - 0.5) * 0.1;
 
     // this._camera.position.x = rotation;
     // this._camera.position.y = -rotation;
     // this._scene.rotation.z = rotation;
     // this._scene.rotation.x = -rotation;
-    this._scene.rotation.y = this._rotateX / 100.0;
+    this._scene.rotation.y = -rotation;
+  }
+
+  _spinBall = (dt) => {
+    this._ball.rotation.x += dt * 2;
   }
 
   _tick = (dt) => {
     // Do our own stuff if we want to
-    this._updatePaddlePosition();
+    this._updatePaddlePosition(dt);
+    this._spinBall(dt);
 
     // Then call on props
     this.props.onTick(dt);
@@ -180,3 +179,13 @@ export default class Renderer extends React.Component {
     );
   }
 };
+
+function lowPass(input, output) {
+  const ALPHA = 0.1;
+
+  if (!output) {
+    return { ...input };
+  }
+  output.x = output.x + ALPHA * (input.x - output.x);
+  return output;
+}
