@@ -16,6 +16,7 @@ import GameState from './GameState';
 export default class Game extends React.Component {
   state = {
     gameOver: false,
+    countdown: null,
   }
 
   constructor(props) {
@@ -49,7 +50,10 @@ export default class Game extends React.Component {
 
   _startNewGame = () => {
     GameState.restart();
-    this.setState({gameOver: false, countdown: 3});
+    this.setState({
+      gameOver: false,
+      countdown: GameState.CountdownMax,
+    });
   }
 
   _handleMove = (_, gesture) => {
@@ -61,11 +65,10 @@ export default class Game extends React.Component {
 
   render() {
     return (
-      <View style={{flex: 1, backgroundColor: '#000'}}>
-
-        <View style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center'}]}>
+      <View style={styles.container}>
+        { this.state.countdown === null && <View style={styles.loadingContainer}>
           <ActivityIndicator />
-        </View>
+        </View> }
 
         <GameRenderer
           panResponder={this._panResponder}
@@ -73,14 +76,14 @@ export default class Game extends React.Component {
           style={{flex: 1}}
         />
 
-        { this.state.gameOver && <View style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent'}]}>
-            <Text style={{color: '#fff', fontSize: 90, fontWeight: 'bold'}} onPress={this._startNewGame}>
-              GAME OVER. Try again?
+        { this.state.gameOver && <View style={styles.gameOverContainer}>
+            <Text style={styles.gameOverText} onPress={this._startNewGame}>
+              Game over! Tap to play again.
             </Text>
           </View> }
 
-        <View style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent'}]} pointerEvents="none">
-          <Text style={{color: '#fff', fontSize: 120, fontWeight: 'bold'}}>
+        <View style={styles.countdownContainer} pointerEvents="none">
+          <Text style={styles.countdownText}>
             {this.state.countdown > 0 ? this.state.countdown : ''}
           </Text>
         </View>
@@ -90,3 +93,38 @@ export default class Game extends React.Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gameOverContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  gameOverText: {
+    color: '#fff',
+    fontSize: 80,
+    lineHeight: 85,
+    fontWeight: 'bold',
+  },
+  countdownContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  countdownText: {
+    color: '#fff',
+    fontSize: 120,
+    fontWeight: 'bold',
+  },
+});

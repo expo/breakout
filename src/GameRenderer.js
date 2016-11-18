@@ -64,7 +64,7 @@ export default class GameRenderer extends React.Component {
       geometry,
       new THREE.LineBasicMaterial({
         color: 0xffffff,
-        opacity: 0.5
+        opacity: 0.3
       })
     ));
 
