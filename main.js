@@ -23,7 +23,7 @@ class App extends React.Component {
       let assets = [
         require('./assets/sounds/countdownBlip.mp3'),
         require('./assets/sounds/brickDeath.mp3'),
-        require('./assets/sounds/blip.m4a'),
+        require('./assets/sounds/blip.wav'),
       ];
 
       await Promise.all(

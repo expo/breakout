@@ -199,7 +199,7 @@ class GameState {
 
         ball.ballVx = placementFactor * 5;
 
-        this._emitSound(require('../assets/sounds/blip.m4a'));
+        this._emitSound(require('../assets/sounds/blip.wav'));
         return ball;
       }
 
