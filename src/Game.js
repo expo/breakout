@@ -13,6 +13,7 @@ import {
 import GameRenderer from './GameRenderer';
 import GameState from './GameState';
 import ScoreBoard from './ScoreBoard';
+import SoundFx from './SoundFx';
 
 export default class Game extends React.Component {
   state = {
@@ -44,6 +45,9 @@ export default class Game extends React.Component {
       let countdown = Math.max(0, Math.ceil(GameState.CountdownMax - timeElapsed));
 
       if (countdown !== this.state.countdown) {
+        if (countdown > 0) {
+          this._sfx.playSound(require('../assets/sounds/countdownBlip.mp3'));
+        }
         this.setState({countdown});
       }
     }
@@ -57,6 +61,8 @@ export default class Game extends React.Component {
       gameOver: false,
       countdown: GameState.CountdownMax,
     });
+
+    this._sfx.playSound(require('../assets/sounds/countdownBlip.mp3'));
   }
 
   _handleMove = (_, gesture) => {
@@ -91,6 +97,7 @@ export default class Game extends React.Component {
           </Text>
         </View>
 
+        <SoundFx ref={view => { this._sfx = view; }} />
         <ScoreBoard ref={view => { this._scoreBoard = view; }} />
         <StatusBar hidden={true} />
       </View>

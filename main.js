@@ -20,6 +20,15 @@ class App extends React.Component {
         'SpaceMono': require('./assets/fonts/SpaceMono-Regular.ttf'),
       });
 
+      let assets = [
+        require('./assets/sounds/countdownBlip.mp3'),
+        require('./assets/sounds/brickDeath.mp3'),
+      ];
+
+      await Promise.all(
+        assets.map(asset => Exponent.Asset.fromModule(asset).downloadAsync())
+      );
+
       this.setState({ loaded: true });
     } catch (e) {
       Alert.alert('Error when loading', e.message);

@@ -160,6 +160,8 @@ class GameState {
     let paddleTop = paddleY - GameDimensions.Paddle.Height / 2;
     let paddleMiddle = paddleX;
 
+    let hasHitBrick = false;
+
     let updatedScore = this.state.score;
     let updatedBricks = this.state.bricks;
     let updatedBalls = this.state.balls.map(ball => {
@@ -201,7 +203,6 @@ class GameState {
       }
 
       const brickCollidesWithBall = brickCollides.bind(this, ballTop, ballRight, ballBottom, ballLeft);
-      let hasHitBrick = false;
       updatedBricks = updatedBricks.map(brick => {
         if (hasHitBrick) {
           return brick;
@@ -232,9 +233,24 @@ class GameState {
       return ball;
     }).filter(ball => ball !== null);
 
+    if (hasHitBrick) {
+      this._emitSound(require('../assets/sounds/brickDeath.mp3'));
+    }
+
     this.state.score = updatedScore;
     this.state.bricks = updatedBricks;
     this.state.balls = updatedBalls;
+  }
+
+  addSoundListener(cb) {
+    this._soundListeners = this._soundListeners || [];
+    this._soundListeners.push(cb);
+  }
+
+  _emitSound(name) {
+    this._soundListeners.forEach(cb => {
+      cb(name);
+    });
   }
 
   getPaddleXValue() {
