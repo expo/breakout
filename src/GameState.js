@@ -5,8 +5,8 @@ const { SceneWidth, SceneHeight } = GameDimensions;
 const ScorePerBrick = 100;
 let entityId = 0;
 
-function random(min, max) {
-  return Math.floor(Math.random() * max) + min;
+function random(x, y) {
+  return Math.floor(Math.random() * ((y-x) + 1) + x);
 }
 
 const RowStyles = [
