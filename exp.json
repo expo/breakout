@@ -1,21 +1,21 @@
 {
   "name": "breakout",
-  "description": "An empty new project",
+  "description": "Your mission: to breakout. From where? Beneath the surface somewhere maybe. https://github.com/brentvatne/breakout",
   "slug": "breakout",
   "sdkVersion": "11.0.0",
   "version": "1.0.0",
   "orientation": "portrait",
-  "primaryColor": "#cccccc",
-  "iconUrl": "https://s3.amazonaws.com/exp-brand-assets/ExponentEmptyManifest_192.png",
+  "primaryColor": "#000000",
+  "iconUrl": "http://url.brentvatne.ca/3sRh.png",
   "notification": {
     "iconUrl": "https://s3.amazonaws.com/exp-us-standard/placeholder-push-icon-blue-circle.png",
     "color": "#000000"
   },
   "loading": {
-    "iconUrl": "https://s3.amazonaws.com/exp-brand-assets/ExponentEmptyManifest_192.png",
+    "iconUrl": "http://url.brentvatne.ca/3sRh.png",
     "hideExponentText": false
   },
   "packagerOpts": {
-    "assetExts": ["ttf", "mp4", "mp3"]
+    "assetExts": ["ttf", "mp4", "mp3", "m4a"]
   }
 }
