@@ -10,42 +10,60 @@ let soundKey = 0;
 
 export default class SoundFx extends React.Component {
   state = {
-    activeSounds: [],
+    sounds: [],
   }
 
   componentDidMount() {
     GameState.addSoundListener(this.playSound);
   }
 
-  playSound = (asset) => {
-    soundKey++;
-    let sound = {asset, id: soundKey};
-    let { activeSounds } = this.state;
-    activeSounds = [...activeSounds, sound];
-    this.setState({activeSounds});
+  playSound = (name) => {
+    if (name === 'paddle') {
+      this._start(this._paddle);
+    } else if (name === 'death') {
+      this._start(this._death);
+    } else if (name === 'countdown') {
+      this._start(this._countdown);
+    } else {
+      alert(`${name} not a recognized sound`);
+    }
   }
 
-  _soundFinished = (sound) => {
-    let { activeSounds } = this.state;
-    let idx = activeSounds.indexOf(sound);
-    activeSounds = activeSounds.splice(idx, 1);
-    this.setState({activeSounds});
+  _start = (soundRef) => {
+    soundRef.setNativeProps({paused: false});
+    soundRef.seek(0);
+  }
+
+  shouldComponentUpdate() {
+    return false;
   }
 
   render() {
     return (
       <View style={styles.container}>
-        {this.state.activeSounds.map(sound => {
-          return (
-            <Components.Video
-              source={sound.asset}
-              repeat={false}
-              paused={false}
-              key={sound.id}
-              onEnd={() => this._soundFinished(sound)}
-            />
-          );
-        })}
+        <Components.Video
+          source={require('../assets/sounds/blip.wav')}
+          key="paddle"
+          ref={view => { this._paddle = view; }}
+          repeat={false}
+          paused={true}
+        />
+
+        <Components.Video
+          source={require('../assets/sounds/brickDeath.mp3')}
+          key="death"
+          ref={view => { this._death = view; }}
+          repeat={false}
+          paused={true}
+        />
+
+        <Components.Video
+          source={require('../assets/sounds/countdownBlip.mp3')}
+          key="countdown"
+          ref={view => { this._countdown = view; }}
+          repeat={false}
+          paused={true}
+        />
       </View>
     );
   }

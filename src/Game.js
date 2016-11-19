@@ -46,7 +46,7 @@ export default class Game extends React.Component {
 
       if (countdown !== this.state.countdown) {
         if (countdown > 0) {
-          this._sfx.playSound(require('../assets/sounds/countdownBlip.mp3'));
+          this._sfx.playSound('countdown');
         }
         this.setState({countdown});
       }
@@ -62,7 +62,7 @@ export default class Game extends React.Component {
       countdown: GameState.CountdownMax,
     });
 
-    this._sfx.playSound(require('../assets/sounds/countdownBlip.mp3'));
+    this._sfx.playSound('countdown');
   }
 
   _handleMove = (_, gesture) => {
