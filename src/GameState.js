@@ -28,7 +28,7 @@ function newBrickLayout() {
   let layout = [];
 
   for (var i = 0; i < numRows; i++) {
-    let idx = random(0, RowStyles.length);
+    let idx = random(0, RowStyles.length - 1);
     let row = createBrickRow(RowStyles[idx], i + 1);
     layout = [...layout, ...row];
   }
@@ -101,16 +101,7 @@ class GameState {
       return;
     }
 
-    // Skip to the next level
-    // if (!this._lol) {
-    //   this._lol = setTimeout(() => {
-    //     this._proceedToNextLevel();
-    //     this._lol = null;
-    //   }, 8000);
-    // }
-
     this.state.timeElapsed += dt;
-
     if (this.state.timeElapsed < this.CountdownMax) {
       return;
     }
@@ -218,8 +209,19 @@ class GameState {
 
         if (brickCollidesWithBall(brick.brickTop, brick.brickRight, brick.brickBottom, brick.brickLeft)) {
           hasHitBrick = true;
+          let brickMiddle = brick.brickX;
+          let placementFactor;
+
+          if (ballMiddle < brickMiddle) {
+            placementFactor = -((brickMiddle - ballMiddle) / (GameDimensions.Brick.Width / 2));
+          } else if (ballMiddle > brickMiddle) {
+            placementFactor = ((ballMiddle - brickMiddle) / (GameDimensions.Brick.Width / 2));
+          } else {
+            placementFactor = 0;
+          }
+
           ball.ballVy = -ballVy;
-          ball.ballVx = -ballVx;
+          ball.ballVx = placementFactor * (3 + this.state.level / 2);
           updatedScore += ScorePerBrick;
           return null;
         }

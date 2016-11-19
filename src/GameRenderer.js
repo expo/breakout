@@ -57,13 +57,13 @@ export default class GameRenderer extends React.Component {
 
   _addGrid = () => {
     const { SceneWidth, SceneHeight } = GameDimensions;
-    const geometry = new THREE.BoxGeometry(SceneWidth, SceneHeight, SceneWidth, 5, 5, 5);
+    const geometry = new THREE.BoxGeometry(SceneWidth, SceneHeight, SceneWidth, 5, 5, 1);
     const mesh = new THREE.Object3D();
 
     mesh.add(new THREE.LineSegments(
       geometry,
       new THREE.LineBasicMaterial({
-        color: 0xffffff,
+        color: 0x4c4c4c,
         opacity: 0.3
       })
     ));
@@ -125,7 +125,7 @@ export default class GameRenderer extends React.Component {
     );
 
     if (Platform.OS === 'ios') {
-      let rotation = (GameState.getPaddleXValue() - 0.5) * 0.1;
+      let rotation = (GameState.getPaddleXValue() - 0.5) * 0.15;
       this._scene.rotation.y = -rotation;
     }
   }
