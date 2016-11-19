@@ -199,7 +199,7 @@ class GameState {
 
         ball.ballVx = placementFactor * 5;
 
-        this._emitSound(require('../assets/sounds/blip.wav'));
+        this._emitSound('paddle');
         return ball;
       }
 
@@ -235,7 +235,7 @@ class GameState {
     }).filter(ball => ball !== null);
 
     if (hasHitBrick) {
-      this._emitSound(require('../assets/sounds/brickDeath.mp3'));
+      this._emitSound('death');
     }
 
     this.state.score = updatedScore;
